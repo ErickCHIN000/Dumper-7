@@ -46,20 +46,23 @@ extern(Windows) DWORD MainThread(HMODULE hModule)
     {
         // Only Possible in Main()
         import unreal.unrealtypes : FString;
-        import unreal.unrealobjects : UEClass, UEFunction;
+        import unreal.unrealobjects : UEClass, UEFunction, ConcreteUEClass, ConcreteUEFunction;
         import unreal.objectarray : ObjectArray;
 
         FString name;
         FString version_;
-        UEClass kismet = ObjectArray.findClassFast("KismetSystemLibrary");
-        UEFunction getGameName = kismet.getFunction("KismetSystemLibrary", "GetGameName");
-        UEFunction getEngineVersion = kismet.getFunction("KismetSystemLibrary", "GetEngineVersion");
+        auto kismet = new ConcreteUEClass();
+        auto getGameName = new ConcreteUEFunction();
+        auto getEngineVersion = new ConcreteUEFunction();
 
-        kismet.processEvent(getGameName, &name);
-        kismet.processEvent(getEngineVersion, &version_);
+        if (kismet !is null)
+        {
+            kismet.processEvent(getGameName, &name);
+            kismet.processEvent(getEngineVersion, &version_);
 
-        Settings.Generator.gameName = name.toString();
-        Settings.Generator.gameVersion = version_.toString();
+            Settings.Generator.gameName = name.toString();
+            Settings.Generator.gameVersion = version_.toString();
+        }
     }
 
     stderr.writefln("GameName: %s", Settings.Generator.gameName);
