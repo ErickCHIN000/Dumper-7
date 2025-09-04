@@ -1,0 +1,64 @@
+{
+    "name": "dumper-7-d",
+    "description": "Dumper-7 rewritten in D language - Unreal Engine SDK dumper",
+    "authors": ["Dumper-7 Team", "D Language Port"],
+    "homepage": "https://github.com/Encryqed/Dumper-7",
+    "license": "MIT",
+    "version": "1.0.0",
+    
+    "targetType": "dynamicLibrary",
+    "targetPath": "bin",
+    "targetName": "Dumper-7-D",
+    
+    "sourceFiles": [
+        "main.d",
+        "settings.d"
+    ],
+    
+    "sourcePaths": [
+        ".",
+        "Engine/Public",
+        "Engine/Private", 
+        "Generator/Public",
+        "Generator/Private",
+        "Utils"
+    ],
+    
+    "importPaths": [
+        ".",
+        "Engine/Public",
+        "Engine/Private",
+        "Generator/Public", 
+        "Generator/Private",
+        "Utils"
+    ],
+    
+    "configurations": [
+        {
+            "name": "debug",
+            "targetType": "dynamicLibrary",
+            "buildType": "debug",
+            "dflags": ["-g", "-debug"],
+            "versions": ["Win64", "Windows"]
+        },
+        {
+            "name": "release", 
+            "targetType": "dynamicLibrary",
+            "buildType": "release",
+            "dflags": ["-O3", "-release", "-inline"],
+            "versions": ["Win64", "Windows"]
+        }
+    ],
+    
+    "platforms": ["windows"],
+    
+    "buildRequirements": ["allowWarnings"],
+    
+    "lflags": [
+        "/DLL",
+        "/SUBSYSTEM:WINDOWS"
+    ],
+    
+    "dependencies": {
+    }
+}
