@@ -82,6 +82,18 @@ R"(
 		constexpr bool bAddFinalSpecifier = true;
 	}
 
+	namespace DGenerator
+	{
+		/* Whether the D language SDK generation is enabled */
+		constexpr bool bEnabled = true;
+
+		/* No prefix for files->FilePrefix = "" */
+		constexpr const char* FilePrefix = "";
+
+		/* Whether to generate D-style naming conventions (camelCase vs PascalCase) */
+		constexpr bool bUseDNamingConventions = true;
+	}
+
 	namespace MappingGenerator
 	{
 		/* Whether the MappingGenerator should check if a name was written to the nametable before. Exists to reduce mapping size. */

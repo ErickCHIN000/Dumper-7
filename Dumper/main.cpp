@@ -4,11 +4,13 @@
 #include <fstream>
 
 #include "Generators/CppGenerator.h"
+#include "Generators/DGenerator.h"
 #include "Generators/MappingGenerator.h"
 #include "Generators/IDAMappingGenerator.h"
 #include "Generators/DumpspaceGenerator.h"
 
 #include "Generators/Generator.h"
+#include "Settings.h"
 
 enum class EFortToastType : uint8
 {
@@ -60,6 +62,11 @@ DWORD MainThread(HMODULE Module)
 	std::cerr << "GameVersion: " << Settings::Generator::GameVersion << "\n\n";
 
 	Generator::Generate<CppGenerator>();
+	
+	if constexpr (Settings::DGenerator::bEnabled) {
+		Generator::Generate<DGenerator>();
+	}
+	
 	Generator::Generate<MappingGenerator>();
 	Generator::Generate<IDAMappingGenerator>();
 	Generator::Generate<DumpspaceGenerator>();
