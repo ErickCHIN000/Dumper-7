@@ -3,12 +3,20 @@
 
 SDK Generator for all Unreal Engine games. Supported versions are all of UE4 and UE5.
 
+Now supports generating SDKs for both C++ and D programming languages!
+
 ## How to use
 
 - Compile the dll in x64-Release
 - Inject the dll into your target game
 - The SDK is generated into the path specified by `Settings::SDKGenerationPath`, by default this is `C:\\Dumper-7`
-- **See [UsingTheSDK](UsingTheSDK.md) for a guide to get started, or to migrate from an old SDK.**
+- **See [UsingTheSDK](UsingTheSDK.md) for a C++ SDK guide**
+- **See [UsingTheDSDK](UsingTheDSDK.md) for a D language SDK guide**
+
+## Language Support
+
+- **C++ SDK**: Traditional C++ header files (enabled by default)
+- **D SDK**: D language modules (enabled by default, can be disabled in Settings.h)
 ## Support Me
 
 KoFi: https://ko-fi.com/fischsalat \
