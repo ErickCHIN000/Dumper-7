@@ -7,6 +7,7 @@
 #include "Wrappers/MemberWrappers.h"
 #include "Managers/MemberManager.h"
 #include "Managers/PackageManager.h"
+#include "Wrappers/EnumWrapper.h"
 
 #include "../Settings.h"
 
@@ -239,7 +240,7 @@ void DGenerator::GenerateBasicFiles(StreamType& BasicD, StreamType& AssertionsFi
 {
 	WriteFileHead(BasicD, nullptr, EFileType::BasicD, "Basic D types and definitions");
 
-	// Basic D equivalents of C++ types
+	// Basic D equivalents of C++ types and UE types
 	BasicD << R"(
 // Basic types used throughout the SDK
 alias int8 = byte;
@@ -254,20 +255,78 @@ alias uint64 = ulong;
 // Basic Unreal Engine types
 struct FString
 {
-    // TODO: Implement FString for D
-    void* Data;
+    wchar* Data;     // Wide character data pointer
+    int Count;       // Number of characters (excluding null terminator)
+    int Max;         // Maximum capacity
+    
+    @property const(wchar)[] toString() const
+    {
+        return Data ? Data[0..Count] : null;
+    }
 }
 
 struct FName  
 {
-    // TODO: Implement FName for D
-    uint Index;
+    uint Index;      // Index into the names array
+    uint Number;     // Instance number for duplicate names
+    
+    // TODO: Add methods to resolve name string
 }
 
 struct FText
 {
-    // TODO: Implement FText for D  
-    void* Data;
+    // TODO: Implement FText for D - complex structure with localization support
+    void* Data;      // Placeholder for now
+}
+
+// Basic vector types
+struct FVector
+{
+    float X = 0.0f;
+    float Y = 0.0f;
+    float Z = 0.0f;
+    
+    this(float x, float y, float z) @nogc nothrow
+    {
+        X = x; Y = y; Z = z;
+    }
+}
+
+struct FVector2D
+{
+    float X = 0.0f;
+    float Y = 0.0f;
+    
+    this(float x, float y) @nogc nothrow
+    {
+        X = x; Y = y;
+    }
+}
+
+struct FRotator
+{
+    float Pitch = 0.0f;
+    float Yaw = 0.0f;
+    float Roll = 0.0f;
+    
+    this(float pitch, float yaw, float roll) @nogc nothrow
+    {
+        Pitch = pitch; Yaw = yaw; Roll = roll;
+    }
+}
+
+// Basic color structure
+struct FLinearColor
+{
+    float R = 0.0f;
+    float G = 0.0f;
+    float B = 0.0f;
+    float A = 1.0f;
+    
+    this(float r, float g, float b, float a = 1.0f) @nogc nothrow
+    {
+        R = r; G = g; B = b; A = a;
+    }
 }
 
 )";
@@ -280,17 +339,88 @@ void DGenerator::GenerateUnrealContainers(StreamType& UEContainersHeader)
 	WriteFileHead(UEContainersHeader, nullptr, EFileType::UnrealContainers, "Unreal Engine container types for D");
 
 	UEContainersHeader << R"(
-// Basic TArray implementation for D
+import sdk.basic;
+
+// TArray implementation for D
 struct TArray(T)
 {
-    T* Data;
-    int Count;
-    int Max;
+    T* Data;         // Pointer to array data
+    int Count;       // Number of elements
+    int Max;         // Maximum capacity
     
-    // TODO: Add TArray methods
+    // Basic array operations
+    @property bool empty() const @nogc nothrow
+    {
+        return Count == 0;
+    }
+    
+    @property size_t length() const @nogc nothrow
+    {
+        return cast(size_t)Count;
+    }
+    
+    T opIndex(size_t index) const @nogc nothrow
+    {
+        assert(index < Count);
+        return Data[index];
+    }
+    
+    ref T opIndex(size_t index) @nogc nothrow
+    {
+        assert(index < Count);
+        return Data[index];
+    }
+    
+    // Range interface for foreach
+    @property T* ptr() @nogc nothrow { return Data; }
+    @property const(T)* ptr() const @nogc nothrow { return Data; }
+    
+    // Slice operation
+    T[] opSlice() @nogc nothrow
+    {
+        return Data ? Data[0..Count] : null;
+    }
+    
+    T[] opSlice(size_t start, size_t end) @nogc nothrow
+    {
+        assert(start <= end && end <= Count);
+        return Data ? Data[start..end] : null;
+    }
 }
 
-// TODO: Add other container types like TSet, TMap, etc.
+// TSparseArray implementation for D
+struct TSparseArray(T)
+{
+    TArray!T Data;
+    // TODO: Add sparse array specific members
+}
+
+// TSet implementation for D  
+struct TSet(T)
+{
+    // TODO: Implement TSet for D
+    void* Data;      // Placeholder
+}
+
+// TMap implementation for D
+struct TMap(K, V)
+{
+    // TODO: Implement TMap for D
+    void* Data;      // Placeholder  
+}
+
+// Weak pointer types
+struct TWeakObjectPtr(T)
+{
+    // TODO: Implement weak pointer for D
+    void* Data;      // Placeholder
+}
+
+struct TSoftObjectPtr(T)
+{
+    // TODO: Implement soft pointer for D
+    void* Data;      // Placeholder
+}
 
 )";
 
@@ -355,7 +485,36 @@ void DGenerator::GenerateStruct(const StructWrapper& Struct, StreamType& StructF
 
 void DGenerator::GenerateEnum(const EnumWrapper& Enum, StreamType& StructFile)
 {
-	// TODO: Implement enum generation for D
+	if (!Enum.IsValid())
+		return;
+
+	CollisionInfoIterator EnumValueIterator = Enum.GetMembers();
+
+	int32 NumValues = 0x0;
+	std::string MemberString;
+
+	for (const EnumCollisionInfo& Info : EnumValueIterator)
+	{
+		NumValues++;
+		MemberString += std::format("\t{:{}} = {},\n", Info.GetUniqueName(), 40, Info.GetValue());
+	}
+
+	if (!MemberString.empty()) [[likely]]
+		MemberString.pop_back();
+
+	// D enum syntax (similar to C++ but without 'class' keyword)
+	StructFile << std::format(R"(
+// {}
+// NumValues: 0x{:04X}
+enum {} : {}
+{{
+{}
+}}
+)", Enum.GetFullName()
+  , NumValues
+  , GetEnumPrefixedName(Enum)
+  , CppTypeToD(GetEnumUnderlayingType(Enum))  // Convert underlying type to D
+  , MemberString);
 }
 
 std::string DGenerator::GetMemberTypeString(const PropertyWrapper& MemberWrapper, int32 PackageIndex, bool bAllowForConstPtrMembers)
@@ -384,20 +543,43 @@ std::string DGenerator::GetFunctionSignature(UEFunction Func)
 
 std::string DGenerator::GetStructPrefixedName(const StructWrapper& Struct)
 {
-	// TODO: Implement struct prefixed name for D
-	return "";
+	if (Struct.IsFunction())
+		return Struct.GetUnrealStruct().GetOuter().GetValidName() + "_" + Struct.GetName();
+
+	auto [ValidName, bIsUnique] = Struct.GetUniqueName();
+
+	if (bIsUnique) [[likely]]
+		return ValidName;
+
+	/* Package_FStructName (using underscore instead of :: for D) */
+	return PackageManager::GetName(Struct.GetUnrealStruct().GetPackageIndex()) + "_" + ValidName;
 }
 
 std::string DGenerator::GetEnumPrefixedName(const EnumWrapper& Enum)
 {
-	// TODO: Implement enum prefixed name for D
-	return "";
+	auto [ValidName, bIsUnique] = Enum.GetUniqueName();
+
+	if (bIsUnique) [[likely]]
+		return ValidName;
+
+	/* Package_ESomeEnum (using underscore instead of :: for D) */
+	return PackageManager::GetName(Enum.GetUnrealEnum().GetPackageIndex()) + "_" + ValidName;
 }
 
-std::string DGenerator::GetEnumUnderlayingType(const EnumWrapper& Enm)
+std::string DGenerator::GetEnumUnderlayingType(const EnumWrapper& Enum)
 {
-	// TODO: Implement enum underlying type for D
-	return "";
+	static constexpr std::array<const char*, 8> UnderlayingTypesBySize = {
+		"ubyte",   // D equivalent of uint8
+		"ushort",  // D equivalent of uint16
+		"InvalidEnumSize",
+		"uint",    // D equivalent of uint32
+		"InvalidEnumSize",
+		"InvalidEnumSize",
+		"InvalidEnumSize",
+		"ulong"    // D equivalent of uint64
+	};
+
+	return Enum.GetUnderlyingTypeSize() <= 0x8 ? UnderlayingTypesBySize[static_cast<size_t>(Enum.GetUnderlyingTypeSize()) - 1] : "ubyte";
 }
 
 std::string DGenerator::GetAssertionMacroString(const std::string& PrefixedStructUniqueName)

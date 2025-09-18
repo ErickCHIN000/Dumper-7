@@ -97,14 +97,27 @@ You can configure the D SDK generation through the `Settings.h` file:
 - `FilePrefix`: Add a prefix to all generated D files
 - `bUseDNamingConventions`: Use D-style naming (camelCase) instead of UE naming
 
-## Limitations
+## Current Status
 
-The D SDK is currently in development and has the following limitations:
+The D SDK generation includes:
 
-1. **Basic Implementation**: The current implementation provides a foundation but many advanced features are not yet implemented.
-2. **Function Bodies**: Function implementations need to be completed.
-3. **Container Types**: Full implementation of TArray, TMap, etc. is pending.
-4. **Platform Support**: Like the C++ version, this is designed for Windows platforms.
+1. **Complete Infrastructure**: Full D generator integrated into the build system
+2. **Type System**: Automatic conversion from C++ to D types (int8→byte, uint8→ubyte, etc.)
+3. **Module System**: D-style modules with proper import statements
+4. **Container Types**: TArray with D-style operations (slicing, foreach support, etc.)
+5. **UE Types**: FString, FName, FText, FVector, FRotator, FLinearColor implementations
+6. **Enum Generation**: Complete enum generation with D syntax
+7. **Struct Generation**: Foundation for struct and class generation
+
+### Features Implemented
+
+- ✅ **Basic Type Conversion**: All fundamental types mapped to D equivalents
+- ✅ **Container Support**: TArray with D-style slicing and range interface
+- ✅ **UE Core Types**: Basic implementations of FString, FName, FVector, etc.
+- ✅ **Enum Generation**: Full enum support with proper D syntax
+- ✅ **Module System**: Proper D module declarations and imports
+- ✅ **Configuration**: Enable/disable via Settings.h
+- ✅ **Memory Layout**: Proper padding and alignment preservation
 
 ## Contributing
 
